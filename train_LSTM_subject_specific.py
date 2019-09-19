@@ -1,11 +1,12 @@
-#%%
+#%% Subject specific CNN %%         
 # -*- coding: utf-8 -*-
 """
 Created on Thu Mar 21 09:03:25 2019
 @author: Berdakh
+
+This script can be used to train LSTM model on subject specific data.
 """
 import torch 
-import itertools
 import pandas as pd 
 import pickle 
 
@@ -14,33 +15,47 @@ from nu_train_utils import train_model
 from nu_models import LSTM_Model
 
 # to get a torch tensor 
-get_data = getTorch.get_data 
+get_data = getTorch.get_data
 dev = torch.device("cpu")
-
 if torch.cuda.is_available():    
     dev = torch.device("cuda") 
     print('Your GPU device name :', torch.cuda.get_device_name())    
 
-dname = dict(nu = 'data_allsubjects.pickle',
+#%% dataset information
+'''
+dname is a dictionary containing dataset names to be loaded from
+the current directory
+
+The following files represent the ERP datasets referred in the paper as:
+
+    NU data   = 'data_allsubjects.pickle',
+    EPFL data = 'EPFLP300.pickle'
+    BNCI data ='TenHealthyData.pickle'
+    ALS data  ='ALSdata.pickle'
+'''
+# Load ERP data
+dname = dict(nu   = 'data_allsubjects.pickle',
              epfl = 'EPFLP300.pickle',
-             ten = 'TenHealthyData.pickle',
-             als = 'ALSdata.pickle')
+             ten  = 'TenHealthyData.pickle',
+             als  = 'ALSdata.pickle')
 
-#tested 
-batch_size = 64
-learning_rate = 1e-3
-weight_decay = 1e-4 
+#%% Hyperparameter settings 
 num_epochs = 100
-verbose = 1  
-
+batch_size = 64
+verbose = 2
+learning_rate = 1e-3
+weight_decay = 1e-4    
 #%%       
 for itemname, filename in dname.items():
     print('working with', filename)
     iname = itemname + '__'
     
+    # Hyperparamters:    
+    # here for each datatype, a unique model architecture can be set
+    # these architectures are defined based on the pooled data           
     if filename =='data_allsubjects.pickle':
-        num_layers = 3
-        hidden_size = 64
+        num_layers = 3 # number of LSTM layers
+        hidden_size = 64 # number of neurons/cell in each layer 
     elif filename =='EPFLP300.pickle':
         num_layers = 3
         hidden_size = 64
@@ -94,7 +109,8 @@ for itemname, filename in dname.items():
                                                                                        num_epochs=num_epochs, 
                                                                                        verbose = verbose)
         #------------------------------------------------
-        # evaluate the best model   
+        # here train_model returns the best_model which is saved for a later use below        
+        # we could immediately evaluate the best model on the test as
         x_test = datum[subjectIndex]['test_data']['x_test'] 
         y_test = datum[subjectIndex]['test_data']['y_test'] 
          
@@ -120,7 +136,7 @@ for itemname, filename in dname.items():
                                     ytrain = info['ytrain'],     yval= info['yval'])      
           
         # save models separately   
-        fname = iname + 'S'+ str(subjectIndex) + '_LSTM_model_'+ str(info['best_acc'])[:4] + "__" + str(test_acc)     
+        fname = iname + 'S'+ str(subjectIndex) + '_LSTM_model_'
         torch.save(best_model.state_dict(), fname) 
             
         print('::: saving subject {} ::: \n {}'.format(subjectIndex, table))         

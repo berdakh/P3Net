@@ -1,3 +1,12 @@
+"""
+@author: berdakh
+
+This script can be used to train subject-speficic ShallowConvNet model. Note that we used the ShallowConvNet implementation 
+provided via the brain decode toolbox available at https://robintibor.github.io/braindecode/.
+
+You can install the library via >>> pip install braindecode
+"""
+
 import logging
 import importlib
 importlib.reload(logging) 
@@ -15,34 +24,48 @@ from nu_data_loader import getTorch, EEGDataLoader
 from nu_train_utils import train_model   
 get_data = getTorch.get_dataEEGnet 
 
-dname = dict(nu   = 'data_allsubjects.pickle',
-             epfl = 'EPFLP300.pickle',
-             ten  = 'TenHealthyData.pickle',
-             als  = 'ALSdata.pickle')
-
-# tested  
-num_epochs = 100
-learning_rate = 1e-4
-weight_decay = 1e-4  
-batch_size = 64 
-verbose = 2
-n_classes = 2  
-
+# import the model 
 ############################################################
 from braindecode.models.shallow_fbcsp import ShallowFBCSPNet
 ############################################################
 Model = ShallowFBCSPNet
 
 dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print('Your GPU device name :', torch.cuda.get_device_name())        
-#%%    
+print('Your GPU device name :', torch.cuda.get_device_name())    
+
+#%%  
+'''
+dname is a dictionary containing dataset names to be loaded from
+the current directory
+
+The following files represent the ERP datasets referred in the paper as:
+
+    NU data   = 'data_allsubjects.pickle',
+    EPFL data = 'EPFLP300.pickle'
+    BNCI data ='TenHealthyData.pickle'
+    ALS data  ='ALSdata.pickle'
+'''
+
+dname = dict(nu = 'data_allsubjects.pickle', 
+             epfl = 'EPFLP300.pickle',  
+             ten = 'TenHealthyData.pickle',
+             als = 'ALSdata.pickle')
+
+#%% Hyperparameter settings
+num_epochs = 100 
+learning_rate = 1e-3
+weight_decay = 1e-4  
+batch_size = 64 
+verbose = 2
+n_classes = 2        
+    
+#%% The main loop starts here 
+# for each dataset in dname train the model on subject specific data     
 for itemname, filename in dname.items():
     print('working with', filename)
     iname = itemname + '__'        
          
-    results = {}        
-    d = EEGDataLoader(filename)
-    
+    d = EEGDataLoader(filename)    
     # subject data indicies 
     s = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]         
     data = d.subject_specific(s)
@@ -56,11 +79,13 @@ for itemname, filename in dname.items():
     # get torch data loaders 
     for ii in range(len(data)):
       datum[ii] = get_data(data[ii], batch_size, lstm = False, image = True)
-          
+    
+    # used for storing the results       
     results, models = {}, {}       
     table = pd.DataFrame(columns = ['Train_Loss', 'Val_Loss', 'Train_Acc', 
                                         'Val_Acc', 'Test_Acc', 'Epoch'])
-        
+     
+    # for each subject data performs training the shallowConvNet
     for subjectIndex in datum:          
         dset_loaders = datum[subjectIndex]['dset_loaders']
         dset_sizes   = datum[subjectIndex]['dset_sizes']        
@@ -81,11 +106,14 @@ for itemname, filename in dname.items():
                       batch_norm_alpha = 0.1,
                       drop_prob = 0.5)
         
+        # create the network 
         model = model.create_network()
-        m = 0                 
+        
+        # optimizer and the loss function 
         optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         criterion = torch.nn.CrossEntropyLoss()
     
+        # move to GPU/CPU
         model.to(dev)
         criterion.to(dev)
           
@@ -98,17 +126,20 @@ for itemname, filename in dname.items():
                                                                                        num_epochs=num_epochs, 
                                                                                        verbose = verbose)
         #------------------------------------------------
-        # evaluate the best model   
+        # here train_model returns the best_model which is saved for a later use below        
+        # we could immediately evaluate the best model on the test as  
         x_test = datum[subjectIndex]['test_data']['x_test'] 
         y_test = datum[subjectIndex]['test_data']['y_test'] 
          
         preds = best_model(x_test.to(dev))    
         preds_class = preds.data.max(1)[1]
         
+        # accuracy 
         corrects = torch.sum(preds_class == y_test.data.to(dev))     
         test_acc = corrects.cpu().numpy()/x_test.shape[0] 
         print("Test accuracy", test_acc)
-          
+        
+        # save results 
         tab = dict(Train_Loss = train_losses[info['best_epoch']], 
                    Val_Loss   = val_losses[info['best_epoch']],
                    Train_Acc  = train_accs[info['best_epoch']],
@@ -123,7 +154,7 @@ for itemname, filename in dname.items():
           
         print(table)
         # save models separately   
-        fname = iname + 'S'+ str(subjectIndex) + '_FBCSP_model_'+ str(info['best_acc'])[:4] + "__" + str(test_acc)     
+        fname = iname + 'S'+ str(subjectIndex) + '_FBCSP_model_'
         torch.save(best_model.state_dict(), fname)            
           
         print('::: saving subject {} ::: \n {}'.format(subjectIndex, table))         
@@ -131,5 +162,5 @@ for itemname, filename in dname.items():
           
     fname = iname + '__S'+str(subjectIndex)  + '_FBCSP_subspe_results'
     with open(fname, 'wb') as fp:
-        pickle.dump(result_lstm_subspe, fp, protocol=pickle.HIGHEST_PROTOCOL)                
+        pickle.dump(result_lstm_subspe, fp)                
       

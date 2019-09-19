@@ -20,3 +20,4 @@ d = torch.load(filename)
 
 # insert the weights
 model.state_dict(d)    
+

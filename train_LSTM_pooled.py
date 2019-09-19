@@ -2,6 +2,8 @@
 """
 Created on Thu Mar 21 09:03:25 2019
 @author: Berdakh
+
+This script can be used to train LSTM model on pooled data.
 """
 import torch 
 import itertools
@@ -20,37 +22,44 @@ if torch.cuda.is_available():
     
 #% Load ERP data
 get_data = getTorch.get_data 
+#%%  
+'''
+dname is a dictionary containing dataset names to be loaded from
+the current directory
 
-# Pooled data 
-dname = dict(nu = 'data_allsubjects.pickle',
-             epfl = 'EPFLP300.pickle',
+The following files represent the ERP datasets referred in the paper as:
+
+    NU data   = 'data_allsubjects.pickle',
+    EPFL data = 'EPFLP300.pickle'
+    BNCI data ='TenHealthyData.pickle'
+    ALS data  ='ALSdata.pickle'
+'''
+
+dname = dict(nu = 'data_allsubjects.pickle', 
+             epfl = 'EPFLP300.pickle',  
              ten = 'TenHealthyData.pickle',
              als = 'ALSdata.pickle')
-
-#tested 
-num_epochs = 100
-batch_size = 64
-verbose = 2  
+#%% Hyperparameter settings
+num_epochs = 100 
 learning_rate = 1e-3
-weight_decay = 1e-4# L2 regularizer parameter    
+weight_decay = 1e-4  
+batch_size = 64 
+verbose = 2
 
 #%%
 for itemname, filename in dname.items():    
     print('::: Working with :::', filename)
     iname = itemname + '_'
        
-    dd = EEGDataLoader(filename)
-    
+    dd = EEGDataLoader(filename)    
     # subject data indicies 
-    s = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-    
+    s = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]    
     #% load pooled data 
     d1 = dd.load_pooled(s)
     
     #% get input size (channel x timepoints)
     timelength = d1['xtest'].shape[2]
-    channels   = d1['xtest'].shape[1]
-    input_size = channels    
+    input_size = d1['xtest'].shape[1]
 
    # Pooled Data LSTM Train    
     table = pd.DataFrame(columns = ['Train_Loss', 'Val_Loss', 'Train_Acc', 
@@ -58,6 +67,7 @@ for itemname, filename in dname.items():
        
     dat = get_data(d1, batch_size, image = False, lstm = True, raw = False)
     
+    # hyperparameters
     params = {'num_layers': [1, 2, 3],
               'hidden_size': [64, 128, 256]}
     
@@ -92,7 +102,9 @@ for itemname, filename in dname.items():
                                                                                        num_epochs = num_epochs, 
                                                                                        verbose = verbose)
         
-        # evaluate the best model   
+        #------------------------------------------------
+        # here train_model returns the best_model which is saved for a later use below        
+        # we could immediately evaluate the best model on the test as
         x_test = dat['test_data']['x_test']   
         y_test = dat['test_data']['y_test'] 
     
@@ -111,8 +123,9 @@ for itemname, filename in dname.items():
                    Val_Acc    = val_accs[info['best_epoch']],   
                    Test_Acc   = test_acc, 
                    Epoch      = info['best_epoch'] + 1)         
+        
         table.loc[description] = tab     
-
+        
         results[description] = dict(train_losses = train_losses, 
                                     val_losses   = val_losses,
                                     train_accs   = train_accs, 
@@ -121,7 +134,7 @@ for itemname, filename in dname.items():
                                     yval         = info['yval'])    
                 
         ######################## SAVE THE MODELS ######################
-        fname = iname + 'LSTM_POOLED_model_' + description + '_' + str(info['best_acc'])[:4]+ "__" + str(test_acc)[:4]
+        fname = iname + 'LSTM_POOLED_model_' + description 
         torch.save(best_model.state_dict(), fname)                
         print(table)
         
@@ -130,4 +143,4 @@ for itemname, filename in dname.items():
     fname2 = iname + "LSTM_POOLED_RESULTS_ALL"         
     
     with open(fname2, 'wb') as fp:
-        pickle.dump(result_lstm, fp)     
+        pickle.dump(result_lstm, fp)    
