@@ -68,8 +68,8 @@ class CNN2D(torch.nn.Module):
             input = self.ReLU(input)        
             input = self.MaxPool(input)                   
         # flatten the CNN output     
-        out = input.view(-1, self.flat_fts)                
-        out = self.ReLU(self.fc1(out))        
+        out = input.view(-1, self.flat_fts) 
+        out = self.fc1(out)                       
         out = self.Dropout(out)        
         out = self.fc2(out)      
         return out        
