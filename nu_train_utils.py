@@ -6,7 +6,6 @@ import numpy as np
 import time
 import copy
 import torch
-from torch.nn.init import constant_, xavier_normal_
 from torch.utils.data import TensorDataset, DataLoader
 from nu_models import LSTM_Model, CNNLSTM
 import pdb 

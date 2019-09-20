@@ -9,44 +9,8 @@ import torch
 from sklearn.model_selection import train_test_split
 from torch.utils.data import TensorDataset, DataLoader  
 from sklearn.preprocessing import StandardScaler
-from sklearn.base import TransformerMixin
- 
-#%%
-class NDStandardScaler(TransformerMixin):
-    def __init__(self, **kwargs):
-        self._scaler = StandardScaler(copy=True, **kwargs)
-        self._orig_shape = None
-
-    def fit(self, X, **kwargs):
-        X = np.array(X)
-        # Save the original shape to reshape the flattened X later
-        # back to its original shape
-        if len(X.shape) > 1:
-            self._orig_shape = X.shape[1:]
-        X = self._flatten(X)
-        self._scaler.fit(X, **kwargs)
-        return self
-
-    def transform(self, X, **kwargs):
-        X = np.array(X)
-        X = self._flatten(X)
-        X = self._scaler.transform(X, **kwargs)
-        X = self._reshape(X)
-        return X
-
-    def _flatten(self, X):
-        # Reshape X to <= 2 dimensions
-        if len(X.shape) > 2:
-            n_dims = np.prod(self._orig_shape)
-            X = X.reshape(-1, n_dims)
-        return X
-
-    def _reshape(self, X):
-        # Reshape X back to it's original shape
-        if len(X.shape) >= 2:
-            X = X.reshape(-1, *self._orig_shape)
-        return X
-    
+from sklearn.base import TransformerMixin 
+   
 #%% Get data loader  
 class getTorch(object):    
     def __init__(self):
@@ -71,6 +35,7 @@ class getTorch(object):
             if IMAGE = TRUE then data is reshaped as an gray scale image 
             if RAW = TRUE,  the original data is returned without reshaping             
         """       
+        
         # Input data is a dictionary 
         x_train, y_train = data['xtrain'], data['ytrain']
         x_valid, y_valid = data['xvalid'], data['yvalid'] 
@@ -92,6 +57,7 @@ class getTorch(object):
         # TensorDataset      
         train_dat    = TensorDataset(x_train, y_train) 
         val_dat      = TensorDataset(x_valid, y_valid)    
+        
         ##############################################
         train_loader = DataLoader(train_dat, batch_size = batch_size, shuffle = True, drop_last=False)
         val_loader   = DataLoader(val_dat,   batch_size = batch_size, shuffle = False, drop_last=False)
@@ -152,7 +118,40 @@ class getTorch(object):
         return dict(dset_loaders = {'train': train_loader, 'val': val_loader}, 
                     dset_sizes   = {'train': len(x_train), 'val': len(x_valid)},
                     test_data    = {'x_test' : x_test, 'y_test' : y_test})     
+
+
+#%% use sklearn standard scaler 
+class SKStandardScaler(TransformerMixin):
+    def __init__(self, **kwargs):
+        self._scaler = StandardScaler(copy=True, **kwargs)
+        self._orig_shape = None
+
+    def fit(self, X, **kwargs):
+        X = np.array(X)    
+        if len(X.shape) > 1:
+            self._orig_shape = X.shape[1:]
+        X = self._flatten(X)
+        self._scaler.fit(X, **kwargs)
+        return self
     
+    def transform(self, X, **kwargs):
+        X = np.array(X)
+        X = self._flatten(X)
+        X = self._scaler.transform(X, **kwargs)
+        X = self._reshape(X)
+        return X
+    
+    def _flatten(self, X):        
+        if len(X.shape) > 2:
+            n_dims = np.prod(self._orig_shape)
+            X = X.reshape(-1, n_dims)
+        return X
+
+    def _reshape(self, X):        
+        if len(X.shape) >= 2:
+            X = X.reshape(-1, *self._orig_shape)
+        return X
+   
 #%% ####################################
 class EEGDataLoader(object):         
     def __init__(self, filename, datapath = "" ):             
@@ -206,7 +205,7 @@ class EEGDataLoader(object):
         Y = np.concatenate([np.ones(s1pos.shape[0]).astype('float32'), np.zeros(s1neg.shape[0]).astype('float32')])
         
         #%% normalization          
-        scaler = NDStandardScaler()
+        scaler = SKStandardScaler()
         X = scaler.fit_transform(X)         
  
         x_rest, x_test, y_rest, y_test =\
@@ -275,7 +274,7 @@ class EEGDataLoader(object):
             Y = np.concatenate([np.ones(pos[ii].shape[0]).astype('float32'), np.zeros(neg[ii].shape[0]).astype('float32')])            
             
             #% normalization 
-            scaler = NDStandardScaler()
+            scaler = SKStandardScaler()
             X = scaler.fit_transform(X)         
             
             x_rest, x_test, y_rest, y_test =\
@@ -307,7 +306,4 @@ class EEGDataLoader(object):
 
             datt.append(dict(xtrain = X_train, xvalid = X_valid, xtest = X_test,
                              ytrain = y_train, yvalid = y_valid, ytest = y_test))                   
-        return datt
-    
-    
-    
+        return datt   
