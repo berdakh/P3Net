@@ -1,7 +1,6 @@
 # Decoding Event-Related Potentials in BCIs via Deep Learning
 This repo contains the source codes used in our research paper entitled
-#"Decoding Event-Related Potentials in BCIs via Deep Learning" 
-submitted per-review.
+"Decoding Event-Related Potentials in BCIs via Deep Learning" submitted to the IEEE Transactions on Biomedical Engineering.
 
 The abstract:
 
