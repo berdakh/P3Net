@@ -1,4 +1,4 @@
-# P3Net - Decoding Event-Related Potentials in BCIs via Deep Learning
+# Decoding Event-Related Potentials in BCIs via Deep Learning
 This repo contains the source codes used in our research paper entitled
 #"Decoding Event-Related Potentials in BCIs via Deep Learning" 
 under review at IEEE transactions on Biomedical Engineering. 
