@@ -1,6 +1,6 @@
-# Deep Learning Models for Decoding Event-Related Potentials in Brain-Computer Interfaces
+# A Systematic Deep Learning Model Selection for P300-Based Brain-Computer Interfaces
 This repo contains the source codes used in our research paper entitled
-"Deep Learning Models for Decoding Event-Related Potentials in Brain-Computer Interfaces".  
+"A Systematic Deep Learning Model Selection for P300-Based Brain-Computer Interfaces".  
 
 The abstract:
 
