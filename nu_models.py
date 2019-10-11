@@ -68,10 +68,10 @@ class CNN2D(torch.nn.Module):
             input = self.ReLU(input)        
             input = self.MaxPool(input)                   
         # flatten the CNN output     
-        out = input.view(-1, self.flat_fts) 
-        out = self.fc1(out)                       
+        out = input.view(-1, self.flat_fts)                
+        out = self.ReLU(self.fc1(out))        
         out = self.Dropout(out)        
-        out = self.fc2(out)      
+        out = self.fc2(out)   
         return out        
 
 #%% ## _LSTM Model        
@@ -128,7 +128,6 @@ class LSTM_Model(torch.nn.Module):
             return (Variable(h_0), Variable(c_0))
 
 #%% CNN LSTM model
-            
 class CNN2DEncoder(torch.nn.Module):  
     """ Flexible 2D CNN 
     Example Usage:
@@ -163,9 +162,9 @@ class CNN2DEncoder(torch.nn.Module):
             input = self.batchnorm[jj+1](input)
             input = self.ReLU(input)        
             input = self.MaxPool(input)              
-        return input    
- 
+        return input     
     
+#%%
 class CNNLSTM(torch.nn.Module):
     """
     Creates a LSTM network with a fully connected output layer.
