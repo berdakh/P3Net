@@ -7,6 +7,7 @@ import torch
 from torch.autograd import Variable
 import torch.nn as nn 
 import numpy as np 
+import pdb 
 
 #%%        
 def compute_conv_dim(dim_size, kernel_size, padding, stride):
@@ -30,7 +31,7 @@ class CNN2D(torch.nn.Module):
         
         super(CNN2D, self).__init__()          
         self.cconv   = []  
-        self.MaxPool = nn.MaxPool2d(2, 2)
+        self.MaxPool = nn.MaxPool2d((2, 1), (1, 2))
         self.ReLU    = nn.ReLU()
         self.Dropout = nn.Dropout(dropout)        
         self.batchnorm = []        
@@ -46,7 +47,8 @@ class CNN2D(torch.nn.Module):
                                      padding      = kernel_size[ii]//2)
             self.cconv.append(conv_i)                
             self.add_module('CNN_K{}_O{}'.format(kernel_size[ii], out_channels), conv_i)
-            ii += 1            
+            ii += 1  
+            
         self.flat_fts = self.get_output_dim(input_size, self.cconv)    
         self.fc1 = torch.nn.Linear(self.flat_fts, dense_size)
         self.fc2 = torch.nn.Linear(dense_size, 2)        
@@ -54,11 +56,13 @@ class CNN2D(torch.nn.Module):
     def get_output_dim(self, in_size, cconv):        
         with torch.no_grad():
             input = Variable(torch.ones(1,*in_size))              
-            for conv_i in cconv:                
+            for conv_i in self.cconv:                
                 input = conv_i(input)
-                input = self.MaxPool(input)        
+                input = self.MaxPool(input) 
+                print('>>> Conv Output >>>', input.shape)
                 flatout = int(np.prod(input.size()[1:]))     
-                print("Flattened output ::", flatout)                
+                
+            print("Flattened output ::", flatout)                
         return flatout 
 
     def forward(self, input):        
@@ -66,9 +70,10 @@ class CNN2D(torch.nn.Module):
             input = conv_i(input)
             input = self.batchnorm[jj+1](input)
             input = self.ReLU(input)        
-            input = self.MaxPool(input)                   
+            input = self.MaxPool(input) 
+                  
         # flatten the CNN output     
-        out = input.view(-1, self.flat_fts)                
+        out = input.view(-1, self.flat_fts)                       
         out = self.ReLU(self.fc1(out))        
         out = self.Dropout(out)        
         out = self.fc2(out)   
@@ -141,7 +146,7 @@ class CNN2DEncoder(torch.nn.Module):
                  dropout       = 0.1):            
         super(CNN2DEncoder, self).__init__()          
         self.cconv   = []  
-        self.MaxPool = nn.MaxPool2d(2, 2)
+        self.MaxPool = nn.MaxPool2d((2, 1), (1, 2))
         self.ReLU    = nn.ReLU()
         self.Dropout = nn.Dropout(dropout)        
         self.batchnorm = []       
