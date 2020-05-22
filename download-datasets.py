@@ -11,15 +11,12 @@ Also note that we have converted all the provided data to MNE format for easier 
 
 You can download them and save in the local directory where the source codes will ba available. 
 
+https://drive.google.com/drive/folders/1d4wo-TjSjENMh-iH-BV9RmhpVr2nP2Pu?usp=sharing
+
 NU data: 
-    https://drive.google.com/open?id=19SwPDCnZ1zL9G5QCieA_ZrWXPXMtN24Y
 ALS data: 
-    https://drive.google.com/open?id=1frdRrw1WGT0y9hfdQ9XSwXjlwor6OKD2 
 EPFL data: 
-    https://drive.google.com/open?id=19py9fTIE7ylW_pXH6ycByu5KjuDS9T-N
-BNCI data: 
-    https://drive.google.com/open?id=1V-teLkK2XWFR4AFf2hA6TV1IsHdSBVLq
-    
+BNCI data:     
 ---------------------------------------------------------------------- 
 Independent data: 
     https://drive.google.com/open?id=1m4_HbBwNQhxzsImyHnJFZAxYCEP1dyIW
