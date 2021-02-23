@@ -10,16 +10,12 @@ import numpy as np
 import pdb
 
 # %%
-
-
 def compute_conv_dim(dim_size, kernel_size, padding, stride):
     # compute the output dimensions of a convolutional layer
     out_dim = int((dim_size - kernel_size + 2 * padding) / stride + 1)
     return out_dim
 
 # %%
-
-
 class CNN2D(torch.nn.Module):
     """ Flexible 2D CNN 
     Example Usage:
