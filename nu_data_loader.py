@@ -214,10 +214,7 @@ class EEGDataLoader(object):
         Y = np.concatenate([np.ones(s1pos.shape[0]).astype(
             'float32'), np.zeros(s1neg.shape[0]).astype('float32')])
 
-        # %% normalization
-        scaler = SKStandardScaler()
-        X = scaler.fit_transform(X)
-
+        
         x_rest, x_test, y_rest, y_test =\
             train_test_split(X, Y, test_size=0.20, random_state=42, stratify=Y)
 
@@ -288,10 +285,6 @@ class EEGDataLoader(object):
                 [pos[ii].astype('float32'), neg[ii].astype('float32')])
             Y = np.concatenate([np.ones(pos[ii].shape[0]).astype(
                 'float32'), np.zeros(neg[ii].shape[0]).astype('float32')])
-
-            # % normalization
-            scaler = SKStandardScaler()
-            X = scaler.fit_transform(X)
 
             x_rest, x_test, y_rest, y_test =\
                 train_test_split(X, Y, test_size=0.2,
