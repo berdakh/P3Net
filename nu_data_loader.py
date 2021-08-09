@@ -11,8 +11,6 @@ from torch.utils.data import TensorDataset, DataLoader
 from sklearn.preprocessing import StandardScaler
 from sklearn.base import TransformerMixin
 
-# %% Get data loader
-
 
 class getTorch(object):
     def __init__(self):
@@ -79,53 +77,6 @@ class getTorch(object):
                        test_data={'x_test': x_test, 'y_test': y_test})
         return out
 
-    @staticmethod
-    def get_dataEEGnet(data, batch_size, lstm, image):
-        """ This function takes data that is obtained from sklearn 
-        train_test_split and wraps with pytorch dataloaders            
-
-        Input: 
-            data : is dictionary with the following structure        
-                  dict_keys(['xtrain', 'xvalid', 'xtest', 'ytrain', 'yvalid', 'ytest'])
-            where:                 
-            *xtrain, xvalid, xtest : [trials x channels x time_samples] is ndarray         
-            *labels: 'ytrain', 'yvalid', 'ytest'
-
-        Output: 
-            pytorch dataloader dictionary object with  [xtrain, xvalid, xtest]
-
-        Options:
-            if IMAGE = TRUE then data is reshaped as an gray scale image 
-        """
-        # Input data is a dictionary
-        x_train, y_train = data['xtrain'], data['ytrain']
-        x_valid, y_valid = data['xvalid'], data['yvalid']
-        x_test,  y_test = data['xtest'],  data['ytest']
-
-        if lstm:  # re-arranges the data to use with LSTM
-            x_train = x_train.permute(0, 2, 1)
-            x_valid = x_valid.permute(0, 2, 1)
-            x_test = x_test.permute(0, 2, 1)
-
-        if image:  # this option will reshape the input as a gray scale image
-            x_train = torch.unsqueeze(x_train, dim=-1)
-            x_valid = torch.unsqueeze(x_valid, dim=-1)
-            x_test = torch.unsqueeze(x_test, dim=-1)
-
-        print('Input data shape', x_train.shape)
-        # TensorDataset
-        train_dat = TensorDataset(x_train, y_train)
-        val_dat = TensorDataset(x_valid, y_valid)
-        train_loader = DataLoader(
-            train_dat, batch_size=batch_size, shuffle=True)
-        val_loader = DataLoader(
-            val_dat,   batch_size=batch_size, shuffle=False)
-
-        return dict(dset_loaders={'train': train_loader, 'val': val_loader},
-                    dset_sizes={'train': len(x_train), 'val': len(x_valid)},
-                    test_data={'x_test': x_test, 'y_test': y_test})
-
-
 # %% use sklearn standard scaler
 class SKStandardScaler(TransformerMixin):
     def __init__(self, **kwargs):
@@ -160,6 +111,7 @@ class SKStandardScaler(TransformerMixin):
 
 #%% ####################################
 
+# %% Get data loader
 
 class EEGDataLoader(object):
     def __init__(self, filename, datapath=""):
@@ -320,3 +272,50 @@ class EEGDataLoader(object):
             datt.append(dict(xtrain=X_train, xvalid=X_valid, xtest=X_test,
                              ytrain=y_train, yvalid=y_valid, ytest=y_test))
         return datt
+
+    @staticmethod
+    def get_dataEEGnet(data, batch_size, lstm, image):
+        """ This function takes data that is obtained from sklearn 
+        train_test_split and wraps with pytorch dataloaders            
+
+        Input: 
+            data : is dictionary with the following structure        
+                  dict_keys(['xtrain', 'xvalid', 'xtest', 'ytrain', 'yvalid', 'ytest'])
+            where:                 
+            *xtrain, xvalid, xtest : [trials x channels x time_samples] is ndarray         
+            *labels: 'ytrain', 'yvalid', 'ytest'
+
+        Output: 
+            pytorch dataloader dictionary object with  [xtrain, xvalid, xtest]
+
+        Options:
+            if IMAGE = TRUE then data is reshaped as an gray scale image 
+        """
+        # Input data is a dictionary
+        x_train, y_train = data['xtrain'], data['ytrain']
+        x_valid, y_valid = data['xvalid'], data['yvalid']
+        x_test,  y_test = data['xtest'],  data['ytest']
+
+        if lstm:  # re-arranges the data to use with LSTM
+            x_train = x_train.permute(0, 2, 1)
+            x_valid = x_valid.permute(0, 2, 1)
+            x_test = x_test.permute(0, 2, 1)
+
+        if image:  # this option will reshape the input as a gray scale image
+            x_train = torch.unsqueeze(x_train, dim=-1)
+            x_valid = torch.unsqueeze(x_valid, dim=-1)
+            x_test = torch.unsqueeze(x_test, dim=-1)
+
+        print('Input data shape', x_train.shape)
+        # TensorDataset
+        train_dat = TensorDataset(x_train, y_train)
+        val_dat = TensorDataset(x_valid, y_valid)
+        train_loader = DataLoader(
+            train_dat, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(
+            val_dat,   batch_size=batch_size, shuffle=False)
+
+        return dict(dset_loaders={'train': train_loader, 'val': val_loader},
+                    dset_sizes={'train': len(x_train), 'val': len(x_valid)},
+                    test_data={'x_test': x_test, 'y_test': y_test})
+
