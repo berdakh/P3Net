@@ -1,13 +1,13 @@
 # P3Net: Systematic Deep Learning Model Selection for P300-Based Brain-Computer Interfaces
 
-This repository contains the source code used in our research paper titled *"A Systematic Deep Learning Model Selection for P300-Based Brain-Computer Interfaces"*. The study explores the feasibility of conducting systematic model selection combined with mainstream deep learning architectures to construct accurate classifiers for decoding P300 event-related potentials.([github.com][1])
+This repository contains the source code used in our research paper titled *"A Systematic Deep Learning Model Selection for P300-Based Brain-Computer Interfaces"*. The study explores the feasibility of conducting systematic model selection combined with mainstream deep learning architectures to construct accurate classifiers for decoding P300 event-related potentials. 
 
 ## Features
 
 * **Diverse Model Architectures**: Implementation of various deep learning models, including CNNs, LSTMs, CNN-LSTM hybrids, EEGNet, and ShallowConvNet.
 * **Comprehensive Evaluation**: Assessment of 232 CNNs (4 datasets × 58 structures), 36 LSTMs (4 datasets × 9 structures), and 320 CNN-LSTM models (4 datasets × 80 structures) of varying complexity.
 * **Subject-Specific and Pooled Training**: Support for both subject-specific and pooled data training approaches.
-* **Reproducibility**: Scripts and utilities to reproduce the results presented in the study.([github.com][1])
+* **Reproducibility**: Scripts and utilities to reproduce the results presented in the study. 
 
 ## Installation
 
